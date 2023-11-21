@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gameku/game.dart';
+import 'package:gameku/game_item.dart';
 
 void main() {
   runApp(const MyApp());
@@ -82,16 +83,21 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-          child: ListView.builder(
-        itemBuilder: (context, index) {
-          final item = list[index];
-          return InkWell(
-            onTap: () {},
-            child: Text(item.name),
-          );
-        },
-        itemCount: list.length,
-      )),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+            ), 
+            itemBuilder: (context, index) {
+              final item = list[index];
+                return InkWell(
+                  onTap: () {},
+                  child: GameItem(game: item),
+                );
+            },
+            itemCount: list.length,
+            
+          )
+      ),
     );
   }
 }
