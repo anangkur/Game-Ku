@@ -1,7 +1,7 @@
-import 'package:gameku/model/platforms.dart';
-import 'package:gameku/model/screenshot.dart';
+import 'package:gameku/data/remote/model/platforms.dart';
+import 'package:gameku/data/remote/model/screenshot.dart';
 
-class Game {
+class GameResponse {
   int id;
   String slug;
   String name;
@@ -11,7 +11,7 @@ class Game {
   List<String> shortScreenshots;
   List<String> platforms;
 
-  Game.fromJsonMap(Map<String, dynamic> map)
+  GameResponse.fromJsonMap(Map<String, dynamic> map)
       : id = map["id"],
         slug = map["slug"],
         name = map["name"],

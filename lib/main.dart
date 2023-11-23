@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:gameku/data/remote/constant.dart';
 import 'package:gameku/detail.dart';
-import 'package:gameku/model/game.dart';
-import 'package:gameku/model/result.dart';
+import 'package:gameku/data/remote/model/game_response.dart';
+import 'package:gameku/data/remote/model/games_response.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -36,11 +37,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Future fetchData() async {
-    final response = await http.get(Uri.parse(
-      "https://api.rawg.io/api/games?key=e301db5382f94b18ae02f9560bf9367f",
-    ));
+    final response = await http.get(Uri.parse(provideGameListEndpoint()));
     if (response.statusCode == 200) {
-      return Result.fromJsonMap(json.decode(response.body));
+      return GamesResponse.fromJsonMap(json.decode(response.body));
     } else {
       return Exception('Failed to load data');
     }
@@ -59,9 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (snapshot.hasData) {
             return Center(child: gameGrid(snapshot.data));
           } else if (snapshot.hasError) {
-            return Center(
-              child: Text(snapshot.error.toString()),
-            );
+            return Center(child: Text(snapshot.error.toString()));
           } else {
             return const LinearProgressIndicator();
           }
@@ -70,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget gameGrid(Result data) {
+  Widget gameGrid(GamesResponse data) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -92,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget gameItem(Game game) {
+  Widget gameItem(GameResponse game) {
     return SizedBox(
       height: double.infinity,
       child: Card(
@@ -101,42 +98,60 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 3 / 2,
-              child: Image.network(
-                game.backgroundImage,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
+            gameItemImage(game.backgroundImage),
             Padding(
               padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "${game.rating} (${game.ratingCount})",
-                    style: const TextStyle(
-                      fontSize: 12,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      game.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  gameItemRating(game.rating, game.ratingCount),
+                  gameitemTitle(game.name),
                 ],
               ),
             )
           ],
         ),
+      ),
+    );
+  }
+
+  Widget gameItemImage(String backgroundImage) {
+    return AspectRatio(
+      aspectRatio: 3 / 2,
+      child: Image.network(
+        backgroundImage,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget gameItemRating(double rating, int ratingCount) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.star, color: Colors.orange),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text("$rating ($ratingCount)"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget gameitemTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

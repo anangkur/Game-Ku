@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:gameku/model/detail.dart';
-import 'package:gameku/model/game.dart';
+import 'package:gameku/data/remote/constant.dart';
+import 'package:gameku/data/remote/model/detail_game_response.dart';
+import 'package:gameku/data/remote/model/game_response.dart';
 import 'package:http/http.dart' as http;
 
 class DetailGame extends StatelessWidget {
-  final Game game;
+  final GameResponse game;
 
   const DetailGame({super.key, required this.game});
 
@@ -17,7 +18,7 @@ class DetailGame extends StatelessWidget {
 }
 
 class DetailGamePage extends StatefulWidget {
-  final Game game;
+  final GameResponse game;
 
   const DetailGamePage({super.key, required this.game});
 
@@ -29,9 +30,9 @@ class DetailGamePage extends StatefulWidget {
 
 class DetailGamePageState extends State<DetailGamePage> {
   Future fetchData() async {
-    final response = await http.get(Uri.parse(
-      "https://api.rawg.io/api/games/${widget.game.id}?key=e301db5382f94b18ae02f9560bf9367f",
-    ));
+    final response =
+        await http.get(Uri.parse(provideGameDetailEndpoint(widget.game.id)));
+
     if (response.statusCode == 200) {
       return DetailGameResponse.fromJsonMap(json.decode(response.body));
     } else {
@@ -42,36 +43,37 @@ class DetailGamePageState extends State<DetailGamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.game.name),
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.game.name),
+        ),
+        body: FutureBuilder(
+          future: fetchData(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return detailGame(widget.game, snapshot.data);
+            } else if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            } else {
+              return const LinearProgressIndicator();
+            }
+          },
+        ));
+  }
+
+  Widget detailGame(GameResponse game, DetailGameResponse detailGameResponse) {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          coverImage(game.backgroundImage),
+          content(game.name, game.rating, game.ratingCount),
+          sectionScreenshot(game.shortScreenshots),
+          sectionPlatform(game.platforms),
+          sectionDescription(detailGameResponse.description),
+        ],
       ),
-      body: FutureBuilder(
-        future: fetchData(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  coverImage(widget.game.backgroundImage),
-                  content(widget.game),
-                  sectionScreenshot(widget.game.shortScreenshots),
-                  sectionPlatform(widget.game.platforms),
-                  sectionDescription((snapshot.data as DetailGameResponse).description),
-                ],
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text(snapshot.error.toString()),
-            );
-          } else {
-            return const LinearProgressIndicator();
-          }
-        },
-      )
     );
   }
 
@@ -133,15 +135,15 @@ class DetailGamePageState extends State<DetailGamePage> {
     );
   }
 
-  Widget content(Game game) {
+  Widget content(String name, double rating, int ratingCount) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          contentTitle(game.name),
-          contentRating(game.rating, game.ratingCount),
+          contentTitle(name),
+          contentRating(rating, ratingCount),
         ],
       ),
     );
@@ -211,16 +213,17 @@ class DetailGamePageState extends State<DetailGamePage> {
 
   Widget sectionDescription(String description) {
     return Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            sectionTitle("Description"),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(description),
-            ),
-          ],
-        ));
+      padding: const EdgeInsets.only(top: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          sectionTitle("Description"),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(description),
+          ),
+        ],
+      )
+    );
   }
 }

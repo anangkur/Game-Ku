@@ -1,4 +1,4 @@
-import 'package:gameku/model/platform.dart';
+import 'package:gameku/data/remote/model/platform.dart';
 
 class PlatformWrapper {
   Platform platform;
