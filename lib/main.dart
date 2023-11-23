@@ -4,6 +4,7 @@ import 'package:gameku/data/remote/constant.dart';
 import 'package:gameku/detail.dart';
 import 'package:gameku/data/remote/model/game_response.dart';
 import 'package:gameku/data/remote/model/games_response.dart';
+import 'package:gameku/login.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -36,6 +37,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String? username;
+
   Future fetchData() async {
     final response = await http.get(Uri.parse(provideGameListEndpoint()));
     if (response.statusCode == 200) {
@@ -51,6 +54,18 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (username != null) {
+                logout();
+              } else {
+                goToLogin();
+              }
+            },
+            child: buttonLogin(username),
+          )
+        ],
       ),
       body: FutureBuilder(
         future: fetchData(),
@@ -65,6 +80,14 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ),
     );
+  }
+
+  Widget buttonLogin(String? username) {
+    if (username != null) {
+      return Text(username);
+    } else {
+      return const Text("Login");
+    }
   }
 
   Widget gameGrid(GamesResponse data) {
@@ -142,17 +165,32 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget gameitemTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
       ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
+  }
+
+  Future<void> goToLogin() async {
+    var result = await Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) {
+      return const Login();
+    }));
+    if (result != null) {
+      setState(() {
+        username = result.toString();
+      });
+    }
+  }
+
+  void logout() {
+    setState(() {
+      username = null;
+    });
   }
 }
