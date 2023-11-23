@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:gameku/detail.dart';
 import 'package:gameku/model/game.dart';
 import 'package:gameku/model/result.dart';
 import 'package:http/http.dart' as http;
@@ -77,7 +78,13 @@ class _MyHomePageState extends State<MyHomePage> {
       itemBuilder: (context, index) {
         final item = data.games[index];
         return InkWell(
-          onTap: () {},
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (BuildContext context) {
+                return DetailGame(game: item);
+              },
+            ));
+          },
           child: gameItem(item),
         );
       },
@@ -99,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Image.network(
                 game.backgroundImage,
                 width: double.infinity,
-                fit: BoxFit.fill,
+                fit: BoxFit.cover,
               ),
             ),
             Padding(
